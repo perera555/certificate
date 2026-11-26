@@ -106,6 +106,46 @@ export async function deleteDoc(collection: string, id: string): Promise<void> {
   await fs.rm(path.join(DATA_DIR, safe(collection), `${safe(id)}.json`), { force: true });
 }
 
+/* ---------- binary files (private) ---------- */
+
+export async function putFile(key: string, data: ArrayBuffer, contentType: string): Promise<void> {
+  assertWritable();
+  if (useBlob) {
+    await put(`files/${key}`, Buffer.from(data), {
+      access: "private",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      contentType,
+    });
+    return;
+  }
+  const file = path.join(DATA_DIR, "files", key);
+  await fs.mkdir(path.dirname(file), { recursive: true });
+  await fs.writeFile(file, Buffer.from(data));
+}
+
+export async function getFile(key: string): Promise<ReadableStream<Uint8Array> | null> {
+  if (useBlob) {
+    const r = await get(`files/${key}`, { access: "private", useCache: false }).catch(() => null);
+    return r && r.statusCode === 200 ? r.stream : null;
+  }
+  try {
+    const buf = await fs.readFile(path.join(DATA_DIR, "files", key));
+    return new Response(buf).body;
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteFile(key: string): Promise<void> {
+  assertWritable();
+  if (useBlob) {
+    await del(`files/${key}`).catch(() => {});
+    return;
+  }
+  await fs.rm(path.join(DATA_DIR, "files", key), { force: true });
+}
+
 export function newId() {
   return crypto.randomUUID().replace(/-/g, "").slice(0, 16);
 }

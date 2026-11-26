@@ -10,6 +10,7 @@ import { DEFAULT_SETTINGS, type Certificate, type OrgSettings, type Sticker } fr
 import { TEMPLATES } from "@/lib/validate";
 import CertificateCanvas from "./CertificateCanvas";
 import StickerImage from "./StickerImage";
+import DocumentsPanel from "./DocumentsPanel";
 
 type Draft = Omit<Certificate, "id" | "serial" | "createdAt" | "updatedAt">;
 
@@ -231,6 +232,8 @@ export default function CertificateEditor({ initial }: { initial?: Certificate }
             </div>
           )}
         </div>
+
+        <DocumentsPanel certId={initial?.id} />
       </section>
 
       <aside className="card h-fit space-y-4 p-5 xl:sticky xl:top-28">

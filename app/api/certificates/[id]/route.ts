@@ -2,6 +2,7 @@ import { getAdmin, handleError, unauthorized } from "@/lib/auth";
 import { deleteDoc, getDoc, putDoc } from "@/lib/db";
 import type { Certificate } from "@/lib/types";
 import { cleanCertificate } from "@/lib/validate";
+import { deleteAllAttachments } from "@/lib/attachments";
 
 export async function GET(_req: Request, ctx: RouteContext<"/api/certificates/[id]">) {
   if (!(await getAdmin())) return unauthorized();
@@ -31,6 +32,7 @@ export async function DELETE(_req: Request, ctx: RouteContext<"/api/certificates
   if (!(await getAdmin())) return unauthorized();
   try {
     const { id } = await ctx.params;
+    await deleteAllAttachments(id);
     await deleteDoc("certificates", id);
     return Response.json({ ok: true });
   } catch (e) {
